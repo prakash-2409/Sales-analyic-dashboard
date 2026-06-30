@@ -33,7 +33,9 @@ import {
   TrendingUp,
   MapPin,
   Package,
-  HeartHandshake
+  HeartHandshake,
+  Sparkles,
+  Lightbulb
 } from "lucide-react";
 import { sales, customers, products } from "@/lib/mock-data";
 import { useMemo } from "react";
@@ -390,6 +392,98 @@ export default function DashboardPage() {
                   })}
                 </TableBody>
               </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* AI Insights + Product Distribution */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-1 lg:col-span-4 hover:shadow-md transition-shadow border-indigo-100 dark:border-indigo-900/30">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-md">
+                <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <CardTitle>AI Business Insights</CardTitle>
+            </div>
+            <CardDescription>Powered by InsightIQ Analytics Engine</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20">
+                <div className="flex items-start gap-3">
+                  <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-medium text-emerald-900 dark:text-emerald-300 text-sm">Revenue Growth Detected</p>
+                    <p className="text-sm text-emerald-700 dark:text-emerald-400/80 mt-1">Revenue increased <strong>12.5%</strong> year-over-year. {regionSales[0]?.name} generated the highest revenue at {formatINR(regionSales[0]?.total)}.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20">
+                <div className="flex items-start gap-3">
+                  <Package className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-medium text-blue-900 dark:text-blue-300 text-sm">Top Product Performance</p>
+                    <p className="text-sm text-blue-700 dark:text-blue-400/80 mt-1"><strong>{topProducts[0]?.name}</strong> is the best-selling product with {formatINR(topProducts[0]?.value)} in total revenue across {kpis.totalOrders} orders.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20">
+                <div className="flex items-start gap-3">
+                  <Lightbulb className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="font-medium text-amber-900 dark:text-amber-300 text-sm">Strategic Recommendation</p>
+                    <p className="text-sm text-amber-700 dark:text-amber-400/80 mt-1">Increase marketing campaigns in <strong>{regionSales[regionSales.length - 1]?.name}</strong> to improve regional performance. Consider bundling {topProducts[1]?.name} with {topProducts[2]?.name} for cross-sell opportunities.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-1 lg:col-span-3 hover:shadow-md transition-shadow">
+          <CardHeader>
+            <CardTitle>Product Distribution</CardTitle>
+            <CardDescription>Revenue by top products</CardDescription>
+          </CardHeader>
+          <CardContent className="pl-0 pb-4">
+            <div className="h-[260px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topProducts} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#94a3b8" 
+                    fontSize={11} 
+                    tickLine={false} 
+                    axisLine={false}
+                    interval={0}
+                    angle={-15}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis 
+                    stroke="#94a3b8" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickFormatter={(value) => `₹${value / 100000}L`}
+                  />
+                  <Tooltip 
+                    formatter={(value: any) => [formatINR(value), "Revenue"]}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Bar 
+                    dataKey="value" 
+                    fill="#8b5cf6" 
+                    radius={[4, 4, 0, 0]} 
+                    animationDuration={1500}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
