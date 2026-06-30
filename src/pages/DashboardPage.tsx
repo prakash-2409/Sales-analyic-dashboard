@@ -3,7 +3,7 @@ import {
   CardContent, 
   CardDescription, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
 } from "@/components/ui/card";
 import {
   Table,
@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   LineChart, 
   Line, 
@@ -24,16 +25,18 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
 } from "recharts";
-import { IndianRupee, Users, ShoppingCart, TrendingUp } from "lucide-react";
+import { 
+  IndianRupee, 
+  Users, 
+  ShoppingCart, 
+  TrendingUp,
+  MapPin,
+  Package,
+  HeartHandshake
+} from "lucide-react";
 import { sales, customers, products } from "@/lib/mock-data";
 import { useMemo } from "react";
-
-// Colors for Pie Chart
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function DashboardPage() {
   // Calculate KPIs
@@ -57,13 +60,11 @@ export default function DashboardPage() {
       const month = date.toLocaleString('default', { month: 'short', year: '2-digit' });
       months[month] = (months[month] || 0) + sale.amount;
     });
-    // Sort by date (we know it's May 25 to Apr 26)
+    // Sort chronologically (May 25 to Apr 26)
     const sortedKeys = Object.keys(months).sort((a, b) => {
-      const [mA, yA] = a.split(' ');
-      const [mB, yB] = b.split(' ');
-      if (yA !== yB) return yA.localeCompare(yB);
-      const monthOrder = { Jan:1, Feb:2, Mar:3, Apr:4, May:5, Jun:6, Jul:7, Aug:8, Sep:9, Oct:10, Nov:11, Dec:12 };
-      return monthOrder[mA as keyof typeof monthOrder] - monthOrder[mB as keyof typeof monthOrder];
+      const dateA = new Date(`1 ${a}`);
+      const dateB = new Date(`1 ${b}`);
+      return dateA.getTime() - dateB.getTime();
     });
     
     return sortedKeys.map(key => ({ name: key, total: months[key] }));
@@ -89,7 +90,7 @@ export default function DashboardPage() {
     return Object.entries(prodSales)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
-      .slice(0, 5); // Top 5
+      .slice(0, 5);
   }, []);
 
   // Recent 8 Sales
@@ -104,59 +105,83 @@ export default function DashboardPage() {
     }).format(amount);
   };
 
+  const getInitials = (name: string) => {
+    if (!name) return "UK";
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
+
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard</h2>
-        <p className="text-muted-foreground">Overview of your business performance in India.</p>
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Overview of your business performance in India.</p>
+        </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <IndianRupee className="w-4 h-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Revenue</CardTitle>
+            <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-full">
+              <IndianRupee className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatINR(kpis.totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-emerald-500 font-medium">{kpis.revenueGrowth}</span> from last year
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">{formatINR(kpis.totalRevenue)}</div>
+            <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center">
+                <TrendingUp className="w-3 h-3 mr-1" /> {kpis.revenueGrowth}
+              </span> 
+              <span>Compared to last year</span>
             </p>
           </CardContent>
         </Card>
-        <Card>
+        
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Sales Orders</CardTitle>
-            <ShoppingCart className="w-4 h-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">Sales Orders</CardTitle>
+            <div className="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-full">
+              <ShoppingCart className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{kpis.totalOrders}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-emerald-500 font-medium">{kpis.orderGrowth}</span> from last month
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">+{kpis.totalOrders}</div>
+            <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center">
+                <TrendingUp className="w-3 h-3 mr-1" /> {kpis.orderGrowth}
+              </span> 
+              <span>Compared to last month</span>
             </p>
           </CardContent>
         </Card>
-        <Card>
+        
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
-            <Users className="w-4 h-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">Active Customers</CardTitle>
+            <div className="p-2 bg-amber-50 dark:bg-amber-500/10 rounded-full">
+              <Users className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpis.totalCustomers}</div>
-            <p className="text-xs text-muted-foreground">
-              Across all Indian regions
+            <div className="text-2xl font-bold text-slate-900 dark:text-white">{kpis.totalCustomers}</div>
+            <p className="text-xs text-slate-500 mt-1">
+              Active accounts across all regions
             </p>
           </CardContent>
         </Card>
-        <Card>
+        
+        <Card className="hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">Overall Growth</CardTitle>
-            <TrendingUp className="w-4 h-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">Overall Growth</CardTitle>
+            <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-full">
+              <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">+14.2%</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">+14.2%</div>
+            <p className="text-xs text-slate-500 mt-1">
               QoQ Average Growth
             </p>
           </CardContent>
@@ -165,35 +190,44 @@ export default function DashboardPage() {
 
       {/* Charts Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+        <Card className="col-span-1 lg:col-span-4 hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle>Monthly Revenue</CardTitle>
             <CardDescription>Performance over the last 12 months</CardDescription>
           </CardHeader>
-          <CardContent className="pl-2">
-            <div className="h-[300px] w-full">
+          <CardContent className="pl-0 pb-4">
+            <div className="h-[320px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={monthlyRevenue} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#94a3b8" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false}
+                    dy={10} 
+                  />
                   <YAxis 
-                    stroke="#64748b" 
+                    stroke="#94a3b8" 
                     fontSize={12} 
                     tickLine={false} 
                     axisLine={false} 
                     tickFormatter={(value) => `₹${value / 100000}L`}
+                    dx={-10}
                   />
                   <Tooltip 
-                    formatter={(value: number) => [formatINR(value), "Revenue"]}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    formatter={(value: any) => [formatINR(value), "Revenue"]}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' }}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="total" 
-                    stroke="#0f172a" 
+                    stroke="#6366f1" 
                     strokeWidth={3}
-                    dot={{ r: 4, fill: "#0f172a" }}
-                    activeDot={{ r: 6 }} 
+                    dot={{ r: 4, fill: "#6366f1", strokeWidth: 0 }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                    animationDuration={1500} 
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -201,27 +235,44 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         
-        <Card className="col-span-3">
+        <Card className="col-span-1 lg:col-span-3 hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle>Sales by Region</CardTitle>
             <CardDescription>Revenue distribution across India</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full">
+          <CardContent className="pl-0 pb-4">
+            <div className="h-[320px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={regionSales} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis 
+                <BarChart data={regionSales} margin={{ top: 5, right: 30, left: 10, bottom: 5 }} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                  <XAxis 
+                    type="number"
+                    stroke="#94a3b8" 
                     fontSize={12} 
                     tickLine={false} 
-                    axisLine={false} 
+                    axisLine={false}
                     tickFormatter={(value) => `₹${value / 100000}L`}
+                  />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category"
+                    stroke="#64748b" 
+                    fontSize={12} 
+                    tickLine={false} 
+                    axisLine={false}
+                    width={80}
                   />
                   <Tooltip 
                     formatter={(value: any) => [formatINR(value), "Sales"]}
-                    cursor={{ fill: 'var(--muted)' }}
+                    cursor={{ fill: 'rgba(241, 245, 249, 0.5)' }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                   />
-                  <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                  <Bar 
+                    dataKey="total" 
+                    fill="#10b981" 
+                    radius={[0, 4, 4, 0]} 
+                    animationDuration={1500}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -230,87 +281,119 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Top Products</CardTitle>
+        
+        {/* Business Summary Widget */}
+        <Card className="col-span-1 lg:col-span-2 flex flex-col hover:shadow-md transition-shadow">
+          <CardHeader className="pb-4">
+            <CardTitle>Executive Summary</CardTitle>
+            <CardDescription>Key operational metrics</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={topProducts}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ percent = 0 }) => `${(percent * 100).toFixed(0)}%`}
-                  >
-                    {topProducts.map((_entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: any) => [formatINR(value), "Revenue"]} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-4 flex flex-col gap-2">
-              {topProducts.map((product, i) => (
-                <div key={product.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                    <span className="font-medium truncate max-w-[150px]">{product.name}</span>
-                  </div>
-                  <span className="text-muted-foreground">{formatINR(product.value)}</span>
+          <CardContent className="flex-1 flex flex-col justify-between">
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-md">
+                  <MapPin className="w-5 h-5 text-slate-700 dark:text-slate-300" />
                 </div>
-              ))}
+                <div>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Top Region</p>
+                  <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">{regionSales[0]?.name}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-md">
+                  <Package className="w-5 h-5 text-slate-700 dark:text-slate-300" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Top Product</p>
+                  <p className="text-lg font-bold text-slate-700 dark:text-slate-300 truncate max-w-[150px]" title={topProducts[0]?.name}>{topProducts[0]?.name}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-md">
+                  <HeartHandshake className="w-5 h-5 text-slate-700 dark:text-slate-300" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Avg. Order Value</p>
+                  <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">
+                    {formatINR(kpis.totalRevenue / kpis.totalOrders)}
+                  </p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="col-span-4">
+        <Card className="col-span-1 lg:col-span-5 hover:shadow-md transition-shadow">
           <CardHeader>
-            <CardTitle>Recent Sales</CardTitle>
-            <CardDescription>Latest transactions from clients</CardDescription>
+            <CardTitle>Recent Transactions</CardTitle>
+            <CardDescription>Latest enterprise software purchases</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Region</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentSales.map((sale) => (
-                  <TableRow key={sale.id}>
-                    <TableCell>
-                      <div className="font-medium text-slate-900 dark:text-slate-100">{sale.customerName}</div>
-                      <div className="text-xs text-muted-foreground hidden sm:block">{sale.customerEmail}</div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{sale.region}</TableCell>
-                    <TableCell>
-                      <Badge variant={sale.status === 'Completed' ? 'default' : 'secondary'} 
-                             className={sale.status === 'Completed' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-100 border-emerald-200' : ''}>
-                        {sale.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      {formatINR(sale.amount)}
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>Client</TableHead>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Region</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {recentSales.map((sale) => {
+                    const saleDate = new Date(sale.date).toLocaleDateString('en-IN', {
+                      day: 'numeric', month: 'short', year: 'numeric'
+                    });
+                    
+                    return (
+                      <TableRow key={sale.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9 border border-slate-200 dark:border-slate-800 shadow-sm">
+                              <AvatarFallback className="bg-indigo-50 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-400 font-semibold text-xs">
+                                {getInitials(sale.customerName)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium text-slate-900 dark:text-slate-100">{sale.customerCompany || 'Unknown Inc'}</div>
+                              <div className="text-xs text-slate-500">{sale.customerName}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium text-slate-700 dark:text-slate-300">{sale.productName}</div>
+                          <div className="text-xs text-slate-500">{saleDate}</div>
+                        </TableCell>
+                        <TableCell className="text-slate-600 dark:text-slate-400">{sale.region}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant="secondary"
+                            className={
+                              sale.status === 'Completed' 
+                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 border-none' 
+                                : sale.status === 'Processing'
+                                ? 'bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 border-none'
+                                : 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 border-none'
+                            }
+                          >
+                            {sale.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold text-slate-900 dark:text-slate-100">
+                          {formatINR(sale.amount)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>
-
     </div>
   );
 }
