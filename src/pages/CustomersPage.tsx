@@ -24,8 +24,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -301,7 +299,7 @@ export default function CustomersPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-5">
-            {topCustomers.map((customer, i) => (
+            {topCustomers.map((customer) => (
               <div key={customer.id} className="flex flex-col items-center text-center p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                 <Avatar className="h-12 w-12 border-2 border-slate-200 dark:border-slate-700 mb-3">
                   <AvatarFallback className="bg-indigo-50 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-400 font-semibold">

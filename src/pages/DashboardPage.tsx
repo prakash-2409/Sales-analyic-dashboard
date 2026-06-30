@@ -37,7 +37,7 @@ import {
   Sparkles,
   Lightbulb
 } from "lucide-react";
-import { sales, customers, products } from "@/lib/mock-data";
+import { sales, customers } from "@/lib/mock-data";
 import { useMemo } from "react";
 
 export default function DashboardPage() {

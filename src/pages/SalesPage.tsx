@@ -37,16 +37,14 @@ import {
 import {
   IndianRupee,
   ShoppingCart,
-  TrendingUp,
   Search,
   Download,
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
   Clock,
-  Loader2,
 } from "lucide-react";
-import { sales, products } from "@/lib/mock-data";
+import { sales } from "@/lib/mock-data";
 
 const ITEMS_PER_PAGE = 12;
 
